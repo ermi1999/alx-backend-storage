@@ -16,10 +16,10 @@ methods = {
         "PATCH": collection.count_documents({"method": "PATCH"}),
         "DELETE": collection.count_documents({"method": "DELETE"})
     }
-status_checks = collection.count_documents({"method": "GET", "path": "/status"})
+status_check = collection.count_documents({"method": "GET", "path": "/status"})
 
 print("{} logs".format(logs))
 print("Methods:")
 for key, value in methods.items():
     print("\tmethod {}: {}".format(key, value))
-print("{} status check".format(status_checks))
+print("{} status check".format(status_check))
