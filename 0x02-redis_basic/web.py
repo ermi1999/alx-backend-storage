@@ -16,11 +16,11 @@ def cache_response(fun: Callable) -> Callable:
     def wrapper(url: str) -> str:
         r = redis.Redis()
         r.incr(f'count:{url}')
-        cached = r.get(f'{url}')
+        cached = r.get(f'result:{url}')
         if cached:
             return cached.decode('utf-8')
         res = fun(url)
-        r.set(f'{url}', res, 10)
+        r.setex(f'result:{url}', 10, res)
         return res
     return wrapper
 
@@ -30,5 +30,4 @@ def get_page(url: str) -> str:
     """
     makes a reques to url.
     """
-    res = requests.get(url)
-    return res.text
+    return requests.get(url).text
