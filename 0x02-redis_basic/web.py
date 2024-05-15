@@ -8,13 +8,15 @@ from functools import wraps
 from typing import Callable
 
 
+r = redis.Redis()
+
+
 def cache_response(fun: Callable) -> Callable:
     """
     A decorator for caching a response and for counting a request.
     """
     @wraps(fun)
     def wrapper(url: str) -> str:
-        r = redis.Redis()
         r.incr(f'count:{url}')
         cached = r.get(f'result:{url}')
         if cached:
