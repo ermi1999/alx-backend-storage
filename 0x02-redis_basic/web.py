@@ -10,7 +10,7 @@ from typing import Callable
 
 def cache_response(fun: Callable) -> Callable:
     """
-    A decorator for caching a response and for counting a request. 
+    A decorator for caching a response and for counting a request.
     """
     @wraps(fun)
     def wrapper(url: str) -> str:
@@ -20,9 +20,10 @@ def cache_response(fun: Callable) -> Callable:
         if cached:
             return cached.decode('utf-8')
         res = fun(url)
-        r.set(url, res, 10)
+        r.set(f'{url}', res, 10)
         return res
     return wrapper
+
 
 @cache_response
 def get_page(url: str) -> str:
