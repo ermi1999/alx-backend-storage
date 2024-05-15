@@ -8,6 +8,22 @@ from functools import wraps
 from typing import Union, Callable, Optional, Any
 
 
+def call_history(method: Callable) -> Callable:
+    """
+    a decorator to store the history of a function call
+    """
+    @wraps(method)
+    def wrapper(self: any, *args):
+        """
+        Wrapper
+        """
+        self._redis.rpush(f"{method.__qualname__}:inputs", str(args))
+        output = method(self, *args)
+        self._redis.rpush(f"{method.__qualname__}:outputs", output)
+        return output
+    return wrapper
+
+
 def count_calls(method: Callable) -> Callable:
     """
     a decorator function to count how many times
@@ -23,6 +39,19 @@ def count_calls(method: Callable) -> Callable:
     return wrapper
 
 
+def replay(fn: Callable) -> None:
+    """
+    displays the history of calls of a particular function.
+    """
+    r = redis.Redis()
+    name = fn.__qualname__
+    inputs = [i.decode('utf-8') for i in r.lrange(f'{name}:inputs', 0, -1)]
+    outputs = [i.decode('utf-8') for i in r.lrange(f'{name}:outputs', 0, -1)]
+    print(f"{fn.__qualname__} was called {r.get(name).decode('utf-8')} times:")
+    for _input, output in zip(inputs, outputs):
+        print(f"{name}(*{_input}) -> {output}")
+
+
 class Cache:
     """
     class for writing into redis.
@@ -31,6 +60,7 @@ class Cache:
         self._redis = redis.Redis()
         self._redis.flushdb()
 
+    @call_history
     @count_calls
     def store(self, data: Union[str, bytes,  int,  float]) -> str:
         """
