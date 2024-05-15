@@ -4,7 +4,23 @@ module for writing into redis.
 """
 import redis
 import uuid
-from typing import Union, Callable, Optional
+from functools import wraps
+from typing import Union, Callable, Optional, Any
+
+
+def count_calls(method: Callable) -> Callable:
+    """
+    a decorator function to count how many times
+    a function gets called.
+    """
+    @wraps(method)
+    def wrapper(self: Any, *args, **kwargs):
+        """
+        wrapper function.
+        """
+        self._redis.incr(method.__qualname__)
+        return method(self, *args, **kwargs)
+    return wrapper
 
 
 class Cache:
@@ -15,6 +31,7 @@ class Cache:
         self._redis = redis.Redis()
         self._redis.flushdb()
 
+    @count_calls
     def store(self, data: Union[str, bytes,  int,  float]) -> str:
         """
         stores a data.
